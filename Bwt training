@@ -1,0 +1,41 @@
+from train_lstm import preprocess_data
+from sklearn.utils import resample
+import numpy as np
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.optimizers import Adam
+from sklearn.metrics import mean_absolute_error
+
+df, scaler = preprocess_data()
+X = df.drop(columns=['temperature', 'humidity']).values
+y = df[['temperature', 'humidity']].values
+X = X.reshape((X.shape[0], X.shape[1], 1))
+
+n_models = 10
+models = []
+weights = []
+X_train, X_test = X[:-100], X[-100:]
+y_train, y_test = y[:-100], y[-100:]
+
+for i in range(n_models):
+    X_resampled, y_resampled = resample(X_train, y_train)
+    model = Sequential([
+        LSTM(50, activation='relu', input_shape=(X.shape[1], 1)),
+        Dense(2)
+    ])
+    model.compile(optimizer=Adam(), loss='mean_squared_error')
+    model.fit(X_resampled, y_resampled, epochs=20, batch_size=32, verbose=0)
+    loss = model.evaluate(X_test, y_test, verbose=0)
+    models.append(model)
+    weights.append(1 / (1 + loss))
+
+weights = np.array(weights) / np.sum(weights)
+
+y_pred_bwt = np.zeros_like(y_test)
+for model, weight in zip(models, weights):
+    y_pred_bwt += model.predict(X_test) * weight
+
+mae_temp = mean_absolute_error(y_test[:, 0], y_pred_bwt[:, 0])
+mae_hum = mean_absolute_error(y_test[:, 1], y_pred_bwt[:, 1])
+print(f"🎯 MAE nhiệt độ: {mae_temp:.4f}")
+print(f"🎯 MAE độ ẩm: {mae_hum:.4f}")
