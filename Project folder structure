@@ -1,0 +1,15 @@
+weather_forecasting_lstm/
+│
+├── data/
+│   └── weather_data.csv           # File dữ liệu thời tiết
+│
+├── src/
+│   ├── fetch_weather.py           # Script gọi API lấy dữ liệu
+│   ├── preprocess.py              # Xử lý dữ liệu
+│   ├── train_lstm.py              # Mô hình LSTM
+│   ├── bwt_training.py            # Huấn luyện với BWT
+│   └── evaluate.py                # Đánh giá mô hình
+│
+├── requirements.txt               # Danh sách thư viện cần thiết
+├── README.md                      # Hướng dẫn sử dụng
+└── .gitignore                     # Bỏ qua các file không cần theo dõi
